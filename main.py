@@ -1,3 +1,5 @@
+import math
+
 import bs4
 import requests
 
@@ -50,23 +52,34 @@ def get_kp_category_prices(category_link):
         if price[0].text in without_price_list:
             continue
 
-        ad_list.append(Ad(ad_name[0].text, price[0].text))
+        ad_list.append(Ad(ad_name[0].text, price[0].text.replace('.', '')))
 
     print(ad_list)
+    avg_price(ad_list)
 
     return ad_list
-    #
 
 
-#
-# def avg_price(ad_list):
-#     for item in ad_list:
-#         if item.price ==
+def avg_price(ad_list):
+
+    price_list = []
+
+    for item in ad_list:
+        temp_price = item.price.split(" ")
+        if temp_price[1] == '€':
+            rsd_price = float(temp_price[0].replace(',', '.')) * 117.
+            rsd_price = str(math.floor(rsd_price))
+            price_list.append(int(rsd_price))
+        else:
+            price_list.append(int(temp_price[0]))
+
+    average_price = math.floor(sum(price_list) / len(price_list))
 
 
+    print("Prosecna cena je " + str(average_price) + " RSD")
 #
 # price = getKPprice('https://novi.kupujemprodajem.com/')
 # if price:
 #     print('Cena je: ' + ' '.join(price[1:3]))
 
-get_kp_category_prices('https://novi.kupujemprodajem.com/pretraga?keywords=iphone')
+get_kp_category_prices('https://novi.kupujemprodajem.com/pretraga')
