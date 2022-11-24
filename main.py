@@ -15,17 +15,31 @@ def getKPprice(product_link):
         print("Greska, cena nije pronadjena. Proverite da li je link ispravan.")
         return
 
+class Ad:
+    def __init__(self, name, price):
+        self.name = name
+        self.price = price
+
+    def __str__(self):
+        return f"{self.name} ({self.price})"
+
+    def __repr__(self):
+        return str(self)
+
 def get_kp_category_prices(category_link):
     res = requests.get(category_link)
     res.raise_for_status()
 
     soup = bs4.BeautifulSoup(res.text, 'html.parser')
 
+    ad_list = []
+
     for container in soup.find_all('article', 'AdItem_adHolder__GL0yo'):
         ad_name = container.select('.AdItem_descriptionHolder__xnkD4 > .AdItem_adInfoHolder___36KR > .AdItem_adTextHolder__lNoRA  .AdItem_name__BppRQ')
         price = container.select('.AdItem_descriptionHolder__xnkD4 > .AdItem_priceHolder__DUd47 > div > .AdItem_price__k0rQn')
-        print(price[0].text + " - " + ad_name[0].text)
+        ad_list.append(Ad(ad_name[0].text, price[0].text))
 
+    return ad_list
     #
     # print(price_container[0].text)
 
