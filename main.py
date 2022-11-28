@@ -1,5 +1,4 @@
 import math
-
 import bs4
 import requests
 
@@ -32,27 +31,40 @@ class Ad:
 
 
 def get_kp_category_prices(category_link):
-    res = requests.get(category_link)
-    res.raise_for_status()
 
-    soup = bs4.BeautifulSoup(res.text, 'html.parser')
+    page_res = requests.get(category_link)
+    page_res.raise_for_status()
+
+    page_soup = bs4.BeautifulSoup(page_res.text, 'html.parser')
+
+    last_page = page_soup.select(".Pagination_pagination__81Zkn > li:nth-last-child(2)")
+    last_page = int(last_page[0].getText())
 
     ad_list = []
 
     without_price_list = ["Kontakt", "Besplatno", "Dogovor", "Pozvati", "Kupujem", "-"]
 
-    for container in soup.find_all('article', 'AdItem_adHolder__GL0yo'):
-        ad_name = container.select(
-            '.AdItem_descriptionHolder__xnkD4 > .AdItem_adInfoHolder___36KR > .AdItem_adTextHolder__lNoRA  '
-            '.AdItem_name__BppRQ')
+    for page in range(last_page):
+        page = page + 1
+        print("Skeniram stranu " + str(page) + "/" + str(last_page))
+        paged_link = category_link + "&page=" + str(page)
+        res = requests.get(paged_link)
+        res.raise_for_status()
 
-        price = container.select(
-            '.AdItem_descriptionHolder__xnkD4 > .AdItem_priceHolder__DUd47 > div > .AdItem_price__k0rQn')
+        soup = bs4.BeautifulSoup(res.text, 'html.parser')
 
-        if price[0].text in without_price_list:
-            continue
+        for container in soup.find_all('article', 'AdItem_adHolder__GL0yo'):
+            ad_name = container.select(
+                '.AdItem_descriptionHolder__xnkD4 > .AdItem_adInfoHolder___36KR > .AdItem_adTextHolder__lNoRA  '
+                '.AdItem_name__BppRQ')
 
-        ad_list.append(Ad(ad_name[0].text, price[0].text.replace('.', '')))
+            price = container.select(
+                '.AdItem_descriptionHolder__xnkD4 > .AdItem_priceHolder__DUd47 > div > .AdItem_price__k0rQn')
+
+            if price[0].text in without_price_list:
+                continue
+
+            ad_list.append(Ad(ad_name[0].text, price[0].text.replace('.', '')))
 
     print(ad_list)
     avg_price(ad_list)
@@ -82,4 +94,4 @@ def avg_price(ad_list):
 # if price:
 #     print('Cena je: ' + ' '.join(price[1:3]))
 
-get_kp_category_prices('https://novi.kupujemprodajem.com/pretraga')
+get_kp_category_prices('https://novi.kupujemprodajem.com/kompjuteri-laptop-i-tablet/laptopovi/pretraga?categoryId=1221&groupId=101&keywords=thinkpad+t495')
