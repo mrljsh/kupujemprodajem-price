@@ -12,6 +12,7 @@ def getKPprice(product_link):
 
     if price_element:
         price_list = [text.strip() for text in price_element[0].text.split(" ")]
+        price_list = ' '.join(price_list[1:3])
         return price_list
     else:
         print("Greska, cena nije pronadjena. Proverite da li je link ispravan.")
@@ -38,14 +39,16 @@ def get_kp_category_prices(category_link):
     page_soup = bs4.BeautifulSoup(page_res.text, 'html.parser')
 
     last_page = page_soup.select(".Pagination_pagination__81Zkn > li:nth-last-child(2)")
-    last_page = int(last_page[0].getText())
+    if last_page:
+        last_page = int(last_page[0].getText())
+    else:
+        last_page = 1
 
     ad_list = []
 
     without_price_list = ["Kontakt", "Besplatno", "Dogovor", "Pozvati", "Kupujem", "-"]
 
-    for page in range(last_page):
-        page = page + 1
+    for page in range(1, last_page + 1):
         print("Skeniram stranu " + str(page) + "/" + str(last_page))
         paged_link = category_link + "&page=" + str(page)
         res = requests.get(paged_link)
@@ -65,19 +68,20 @@ def get_kp_category_prices(category_link):
                 continue
 
             ad_list.append(Ad(ad_name[0].text, price[0].text.replace('.', '')))
-    avg_price(ad_list)
+
+    print('Pronadjeno je ' + str(len(ad_list)) + ' oglasa')
 
     return ad_list
 
 
-def avg_price(ad_list):
+def avg_price_rsd(ad_list):
 
     price_list = []
 
     for item in ad_list:
         temp_price = item.price.split(" ")
         if temp_price[1] == '€':
-            rsd_price = float(temp_price[0].replace(',', '.')) * 117.
+            rsd_price = float(temp_price[0].replace(',', '.')) * 117.3
             rsd_price = str(math.floor(rsd_price))
             price_list.append(int(rsd_price))
         else:
@@ -85,5 +89,8 @@ def avg_price(ad_list):
 
     average_price = math.floor(sum(price_list) / len(price_list))
 
+    return average_price
 
-    print("Prosecna cena je " + str(average_price) + " RSD")
+def rsd_to_eur(rsd):
+    eur = math.floor(rsd / 117.3)
+    return eur
