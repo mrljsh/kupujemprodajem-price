@@ -74,22 +74,28 @@ def get_kp_category_prices(category_link):
     return ad_list
 
 
-def avg_price_rsd(ad_list):
+def avg_price_rsd(price_list):
+    average_price = math.floor(sum(price_list) / len(price_list))
 
-    price_list = []
+    return average_price
+
+
+def list_prices(ad_list):
+    # Takes prices from object and puts it in list (if its in eur, it converts it to RSD)
+
+    list = []
 
     for item in ad_list:
         temp_price = item.price.split(" ")
         if temp_price[1] == '€':
             rsd_price = float(temp_price[0].replace(',', '.')) * 117.3
             rsd_price = str(math.floor(rsd_price))
-            price_list.append(int(rsd_price))
+            list.append(int(rsd_price))
         else:
-            price_list.append(int(temp_price[0]))
+            list.append(int(temp_price[0]))
 
-    average_price = math.floor(sum(price_list) / len(price_list))
+    return list
 
-    return average_price
 
 def rsd_to_eur(rsd):
     eur = math.floor(rsd / 117.3)
